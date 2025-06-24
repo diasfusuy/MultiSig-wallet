@@ -1,1 +1,8 @@
 # MultiSig-wallet
+ I am building a basic multi-signature cryptocurrency wallet entirely from scratch. The project is split into two main parts. First, I will implement the wallet smart contract in Solidity, including core functions such as submitTx, approve, revoke, and execute, while managing a list of owners and approvals. After that, I will manually create and send transactions from JavaScript without using any wallet or transaction libraries like ethers.js or web3.js. This includes managing the account’s nonce, estimating gas usage, constructing raw transactions, signing them using cryptographic libraries, and broadcasting them to a test network. Testing will be done on a local or public testnet only.
+
+To complete this assignment, I built a multi-signature cryptocurrency wallet in two parts: a Solidity smart contract and a JavaScript script for manually creating and sending Ethereum transactions. The Solidity contract includes key multisig features such as submitting, approving, revoking, and executing transactions, along with proper access control and event logging.
+
+On the JavaScript side, I manually derived a wallet address from a private key and interacted with the blockchain using raw JSON-RPC calls. I retrieved the account nonce using eth_getTransactionCount, estimated gas with eth_estimateGas, and obtained the gas price using eth_gasPrice.
+
+Finally, I built a raw transaction object, signed it using my private key with ethers.Wallet.signTransaction(), and sent it to the local Hardhat network using eth_sendRawTransaction. The entire workflow was implemented without relying on wallet or transaction libraries.
