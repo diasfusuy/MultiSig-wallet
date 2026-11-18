@@ -6,6 +6,7 @@ contract MultiSigWallet {
     event Approve(address indexed owner, uint indexed txId);
     event Revoke(address indexed owner, uint indexed txId);
     event Execute(uint indexed txId);
+    event Deposit(address indexed sender, uint amount);
 
     struct Transaction {
         address to;
@@ -16,7 +17,7 @@ contract MultiSigWallet {
     }
 
     address[] public owners;
-    mapping (address => bool) public isOwner; // to tract owners
+    mapping (address => bool) public isOwner; // to track owners
     uint public required;
     
     Transaction[] public transactions;
@@ -45,6 +46,11 @@ contract MultiSigWallet {
         required = _required; // stores required confirmations
     }
 
+    // Lets the wallet hold ETH so approved transactions can send it.
+    receive() external payable {
+        emit Deposit(msg.sender, msg.value);
+    }
+
     function submitTx(address _to, uint _value, bytes calldata _data) external onlyOwner {
         Transaction memory newTx = Transaction ({
         to: _to,
@@ -59,7 +65,8 @@ contract MultiSigWallet {
     }
 
     function approve(uint txId) external onlyOwner {
-        require(txId < transactions.length, "tx does not exists");
+        require(txId < transactions.length, "tx does not exist");
+        require(!transactions[txId].executed, "tx already executed");
         require(!approved[txId][msg.sender], "tx already approved");
         approved[txId][msg.sender] = true;
         
@@ -71,7 +78,7 @@ contract MultiSigWallet {
 
     function revoke(uint txId) external onlyOwner {
         require(txId < transactions.length, "tx does not exist");
-        require(!transactions[txId].executed, "transaction has not executed");
+        require(!transactions[txId].executed, "tx already executed");
         require(approved[txId][msg.sender] == true, "tx is not approved");
         approved[txId][msg.sender] = false;
 
@@ -83,8 +90,8 @@ contract MultiSigWallet {
 
     function execute(uint txId) external onlyOwner {
          require(txId < transactions.length, "tx does not exist");
-         require(!transactions[txId].executed, "transaction has not executed");
-         require(transactions[txId].numApprovals >= required, "");
+         require(!transactions[txId].executed, "tx already executed");
+         require(transactions[txId].numApprovals >= required, "not enough approvals");
 
         transactions[txId].executed = true;
         (bool success, ) = transactions[txId].to.call{value: transactions[txId].value}(transactions[txId].data);
